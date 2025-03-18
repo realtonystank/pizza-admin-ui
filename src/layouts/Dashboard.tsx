@@ -122,7 +122,7 @@ const Dashboard = () => {
             </Space>
           </Flex>
         </Header>
-        <Content style={{ margin: "0 16px" }}>
+        <Content style={{ margin: "24px" }}>
           <div
             style={{
               padding: 24,
