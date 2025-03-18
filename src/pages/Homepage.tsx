@@ -1,4 +1,13 @@
-import { Card, Col, Row, Space, Statistic, Table, Typography } from "antd";
+import {
+  Badge,
+  Card,
+  Col,
+  Row,
+  Space,
+  Statistic,
+  Table,
+  Typography,
+} from "antd";
 import { useAuthStore } from "../../store";
 import { BarChartIcon } from "../components/icons/BarChart";
 import Icon from "@ant-design/icons";
@@ -9,14 +18,14 @@ const dataSource = [
   {
     key: "1",
     name: "Mike",
-    age: 32,
-    address: "10 Downing Street",
+    amount: "1200",
+    status: "preparing",
   },
   {
     key: "2",
     name: "John",
-    age: 42,
-    address: "10 Downing Street",
+    amount: "2000",
+    status: "on the way",
   },
 ];
 
@@ -27,14 +36,28 @@ const columns = [
     key: "name",
   },
   {
-    title: "Age",
-    dataIndex: "age",
-    key: "age",
+    title: "Amount",
+    dataIndex: "amount",
+    key: "amount",
   },
   {
-    title: "Address",
-    dataIndex: "address",
-    key: "address",
+    title: "Status",
+    dataIndex: "status",
+    key: "status",
+    render: (status: string) => {
+      return (
+        <Badge
+          count={status}
+          color="#fef5e1"
+          style={{
+            color: "#e88f7f",
+            fontWeight: "bold",
+            border: "1px solid",
+            alignItems: "center",
+          }}
+        />
+      );
+    },
   },
 ];
 
