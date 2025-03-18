@@ -1,15 +1,25 @@
 import { useState } from "react";
 import { Navigate, NavLink, Outlet } from "react-router-dom";
-import { useAuthStore } from "../../store";
-import { Layout, Menu, theme } from "antd";
+import {
+  Avatar,
+  Badge,
+  Dropdown,
+  Flex,
+  Layout,
+  Menu,
+  Space,
+  theme,
+} from "antd";
 
 import Logo from "../components/icons/Logo";
-import Icon from "@ant-design/icons";
+import Icon, { BellFilled } from "@ant-design/icons";
 import Home from "../components/icons/Home";
 import UserIcon from "../components/icons/UserIcon";
 import { foodIcon } from "../components/icons/FoodIcon";
 import BasketIcon from "../components/icons/BasketIcon";
 import GiftIcon from "../components/icons/GiftIcon";
+import { useAuthStore } from "../../store";
+import { useLogout } from "../hooks/useLogout";
 
 const { Header, Content, Footer, Sider } = Layout;
 
@@ -47,9 +57,13 @@ const Dashboard = () => {
   const {
     token: { colorBgContainer },
   } = theme.useToken();
+
+  const { logout } = useLogout();
+
   if (user === null) {
     return <Navigate to="/auth/login" replace={true} />;
   }
+
   return (
     <Layout style={{ minHeight: "100vh" }}>
       <Sider
@@ -69,7 +83,40 @@ const Dashboard = () => {
         />
       </Sider>
       <Layout>
-        <Header style={{ padding: 0, background: colorBgContainer }} />
+        <Header
+          style={{
+            paddingLeft: "16px",
+            paddingRight: "16px",
+            background: colorBgContainer,
+          }}
+        >
+          <Flex gap="middle" align="center" justify="space-between">
+            <Badge text="Global" status="success"></Badge>
+            <Space size={16}>
+              <Badge dot={true}>
+                <BellFilled />
+              </Badge>
+              <Dropdown
+                menu={{
+                  items: [
+                    {
+                      key: "logout",
+                      label: "Logout",
+                      onClick: () => logout(),
+                    },
+                  ],
+                }}
+                placement="bottomRight"
+              >
+                <Avatar
+                  style={{ backgroundColor: "#fde3cf", color: "#f56a00" }}
+                >
+                  U
+                </Avatar>
+              </Dropdown>
+            </Space>
+          </Flex>
+        </Header>
         <Content style={{ margin: "0 16px" }}>
           <div
             style={{
