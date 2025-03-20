@@ -22,3 +22,5 @@ export type Tenant = {
   name: string;
   address: string;
 };
+
+export type CreateTenant = Omit<Tenant, "id">;

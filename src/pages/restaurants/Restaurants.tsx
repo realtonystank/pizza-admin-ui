@@ -4,6 +4,7 @@ import {
   Card,
   Drawer,
   Flex,
+  Form,
   Space,
   Spin,
   Table,
@@ -18,8 +19,9 @@ import {
 import React, { useState } from "react";
 import { NavLink } from "react-router-dom";
 import RestaurantsFilter from "./RestaurantsFilter";
-import { useQuery } from "@tanstack/react-query";
-import { getTenants } from "../../http/api";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { createTenant, getTenants } from "../../http/api";
+import RestaurantForm from "./forms/RestaurantForm";
 
 const columns = [
   {
@@ -41,6 +43,8 @@ const columns = [
 
 const Restaurants = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [form] = Form.useForm();
+  const queryClient = useQueryClient();
 
   const {
     token: { colorBgLayout },
@@ -59,6 +63,21 @@ const Restaurants = () => {
       return response.data;
     },
   });
+
+  const { mutate: restaurantMutate } = useMutation({
+    mutationKey: ["tenant"],
+    mutationFn: createTenant,
+    onSuccess: async () => {
+      queryClient.invalidateQueries({ queryKey: ["tenants"] });
+      form.resetFields();
+      setDrawerOpen(false);
+    },
+  });
+
+  const onFormSubmit = async () => {
+    await form.validateFields();
+    restaurantMutate(form.getFieldsValue());
+  };
 
   return (
     <>
@@ -109,18 +128,21 @@ const Restaurants = () => {
             <Space>
               <Button
                 onClick={() => {
+                  form.resetFields();
                   setDrawerOpen(false);
                 }}
               >
                 Cancel
               </Button>
-              <Button type="primary">Submit</Button>
+              <Button type="primary" onClick={onFormSubmit}>
+                Submit
+              </Button>
             </Space>
           }
         >
-          <p>Some contents...</p>
-          <p>Some contents...</p>
-          <p>Some contents...</p>
+          <Form layout={"vertical"} form={form}>
+            <RestaurantForm />
+          </Form>
         </Drawer>
 
         <Table dataSource={restaurants} columns={columns} rowKey={"id"} />
