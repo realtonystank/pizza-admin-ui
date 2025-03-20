@@ -1,4 +1,4 @@
-import { Breadcrumb, Button, Drawer, Space, Table } from "antd";
+import { Breadcrumb, Button, Drawer, Form, Space, Table, theme } from "antd";
 import { PlusOutlined, RightOutlined } from "@ant-design/icons";
 import React, { useState } from "react";
 import { Link, Navigate } from "react-router-dom";
@@ -7,6 +7,7 @@ import { getUsers } from "../../http/api";
 import { User } from "../../types";
 import { useAuthStore } from "../../../store";
 import UsersFilter from "./UsersFilter";
+import UserForm from "./forms/UserForm";
 
 const columns = [
   {
@@ -34,6 +35,9 @@ const columns = [
 const Users = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const { user: loggedInUser } = useAuthStore();
+  const {
+    token: { colorBgLayout },
+  } = theme.useToken();
   if (loggedInUser?.role !== "admin") {
     <Navigate to="/" replace={true} />;
   }
@@ -81,13 +85,18 @@ const Users = () => {
           destroyOnClose={true}
           onClose={() => setDrawerOpen(false)}
           open={drawerOpen}
+          styles={{ body: { background: colorBgLayout } }}
           extra={
             <Space>
               <Button>Cancel</Button>
               <Button type="primary">Submit</Button>
             </Space>
           }
-        ></Drawer>
+        >
+          <Form layout="vertical">
+            <UserForm />
+          </Form>
+        </Drawer>
       </Space>
     </>
   );
