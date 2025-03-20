@@ -12,7 +12,11 @@ export type User = {
   firstName: string;
   lastName: string;
   createdAt: string;
+  role: string;
+  tenantId: number | null;
 };
+export type CreateUser = Omit<User, "id" | "createdAt"> & { password: string };
+
 export type Tenant = {
   id: number;
   name: string;

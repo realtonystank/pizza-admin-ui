@@ -137,7 +137,7 @@ const UserForm = () => {
                   >
                     {tenants?.map((tenant: Tenant) => {
                       return (
-                        <Select.Option value={tenant.id}>
+                        <Select.Option value={tenant.id} key={tenant.id}>
                           {tenant.name}
                         </Select.Option>
                       );

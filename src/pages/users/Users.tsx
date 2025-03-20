@@ -2,12 +2,13 @@ import { Breadcrumb, Button, Drawer, Form, Space, Table, theme } from "antd";
 import { PlusOutlined, RightOutlined } from "@ant-design/icons";
 import React, { useState } from "react";
 import { Link, Navigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import { getUsers } from "../../http/api";
-import { User } from "../../types";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { createUser, getUsers } from "../../http/api";
+import { CreateUser, User } from "../../types";
 import { useAuthStore } from "../../../store";
 import UsersFilter from "./UsersFilter";
 import UserForm from "./forms/UserForm";
+import { PER_PAGE } from "../../constants";
 
 const columns = [
   {
@@ -33,11 +34,17 @@ const columns = [
 ];
 
 const Users = () => {
+  const [queryParams, setQueryParams] = useState({
+    perPage: PER_PAGE,
+    currentPage: 1,
+  });
   const [drawerOpen, setDrawerOpen] = useState(false);
   const { user: loggedInUser } = useAuthStore();
+  const queryClient = useQueryClient();
   const {
     token: { colorBgLayout },
   } = theme.useToken();
+  const [form] = Form.useForm();
   if (loggedInUser?.role !== "admin") {
     <Navigate to="/" replace={true} />;
   }
@@ -48,12 +55,33 @@ const Users = () => {
     isError,
     error,
   } = useQuery({
-    queryKey: ["users"],
+    queryKey: ["users", queryParams],
     queryFn: async () => {
-      const response = await getUsers();
+      const queryString = new URLSearchParams(
+        queryParams as unknown as Record<string, string>
+      ).toString();
+
+      const response = await getUsers(queryString);
       return response.data;
     },
   });
+
+  const { mutate: userMutate } = useMutation({
+    mutationKey: ["user"],
+    mutationFn: async (data: CreateUser) => {
+      await createUser(data);
+    },
+    onSuccess: async () => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      form.resetFields();
+      setDrawerOpen(false);
+    },
+  });
+
+  const onHandleSubmit = async () => {
+    await form.validateFields();
+    userMutate(form.getFieldsValue());
+  };
 
   return (
     <>
@@ -78,22 +106,51 @@ const Users = () => {
             Create User
           </Button>
         </UsersFilter>
-        <Table columns={columns} dataSource={users} rowKey={"id"} />
+        <Table
+          columns={columns}
+          dataSource={users?.data}
+          rowKey={"id"}
+          pagination={{
+            total: users?.total,
+            pageSize: queryParams.perPage,
+            current: queryParams.currentPage,
+            onChange: (page) => {
+              setQueryParams((prev) => {
+                return {
+                  ...prev,
+                  currentPage: page,
+                };
+              });
+            },
+          }}
+        />
         <Drawer
           title="Create user"
           width={720}
           destroyOnClose={true}
-          onClose={() => setDrawerOpen(false)}
+          onClose={() => {
+            form.resetFields();
+            setDrawerOpen(false);
+          }}
           open={drawerOpen}
           styles={{ body: { background: colorBgLayout } }}
           extra={
             <Space>
-              <Button>Cancel</Button>
-              <Button type="primary">Submit</Button>
+              <Button
+                onClick={() => {
+                  form.resetFields();
+                  setDrawerOpen(false);
+                }}
+              >
+                Cancel
+              </Button>
+              <Button type="primary" onClick={onHandleSubmit}>
+                Submit
+              </Button>
             </Space>
           }
         >
-          <Form layout="vertical">
+          <Form layout="vertical" form={form}>
             <UserForm />
           </Form>
         </Drawer>
