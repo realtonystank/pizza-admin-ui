@@ -1,18 +1,17 @@
-import { Button, Col, Input, Row } from "antd";
-import { PlusOutlined } from "@ant-design/icons";
-import React from "react";
+import { Col, Input, Row } from "antd";
+import React, { ReactNode } from "react";
 
-const RestaurantsFilter = () => {
+type RestaurantsFilterProps = {
+  children: ReactNode;
+};
+
+const RestaurantsFilter = ({ children }: RestaurantsFilterProps) => {
   return (
     <Row justify={"space-between"}>
       <Col span={14}>
         <Input.Search placeholder="Search" />
       </Col>
-      <Col>
-        <Button icon={<PlusOutlined />} type="primary">
-          Create Restaurant
-        </Button>
-      </Col>
+      <Col>{children}</Col>
     </Row>
   );
 };
