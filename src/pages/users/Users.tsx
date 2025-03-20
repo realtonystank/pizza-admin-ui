@@ -1,6 +1,6 @@
-import { Breadcrumb, Space, Table } from "antd";
-import { RightOutlined } from "@ant-design/icons";
-import React from "react";
+import { Breadcrumb, Button, Drawer, Space, Table } from "antd";
+import { PlusOutlined, RightOutlined } from "@ant-design/icons";
+import React, { useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { getUsers } from "../../http/api";
@@ -32,6 +32,7 @@ const columns = [
 ];
 
 const Users = () => {
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const { user: loggedInUser } = useAuthStore();
   if (loggedInUser?.role !== "admin") {
     <Navigate to="/" replace={true} />;
@@ -64,8 +65,29 @@ const Users = () => {
             console.log(filterName);
             console.log(filterValue);
           }}
-        />
+        >
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={() => setDrawerOpen(true)}
+          >
+            Create User
+          </Button>
+        </UsersFilter>
         <Table columns={columns} dataSource={users} rowKey={"id"} />
+        <Drawer
+          title="Create user"
+          width={720}
+          destroyOnClose={true}
+          onClose={() => setDrawerOpen(false)}
+          open={drawerOpen}
+          extra={
+            <Space>
+              <Button>Cancel</Button>
+              <Button type="primary">Submit</Button>
+            </Space>
+          }
+        ></Drawer>
       </Space>
     </>
   );
