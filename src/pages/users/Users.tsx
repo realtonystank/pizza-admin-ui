@@ -176,6 +176,9 @@ const Users = () => {
           dataSource={users?.data}
           rowKey={"id"}
           pagination={{
+            showTotal: (total: number, range: number[]) => {
+              return `Showing ${range[0]}-${range[1]} of ${total} items`;
+            },
             total: users?.total,
             pageSize: queryParams.perPage,
             current: queryParams.currentPage,
