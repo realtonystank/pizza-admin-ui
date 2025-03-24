@@ -107,9 +107,6 @@ const UserForm = () => {
                     size={"large"}
                     style={{ width: "100%" }}
                     allowClear={true}
-                    onChange={(selectedRole) =>
-                      console.log("role -> ", selectedRole)
-                    }
                     placeholder={"Select Role"}
                   >
                     <Select.Option value="admin">Admin</Select.Option>
@@ -133,9 +130,6 @@ const UserForm = () => {
                     size={"large"}
                     style={{ width: "100%" }}
                     allowClear={true}
-                    onChange={(selectedRestaurant) =>
-                      console.log("tenant -> ", selectedRestaurant)
-                    }
                     placeholder={"Select Restaurant"}
                   >
                     {tenants?.data?.map((tenant: Tenant) => {

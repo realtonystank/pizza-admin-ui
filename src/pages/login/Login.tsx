@@ -44,7 +44,6 @@ const LoginPage = () => {
     mutationFn: loginUser,
     onSuccess: async () => {
       const selfData = await refetch();
-      console.log(selfData);
       if (!isAllowed(selfData.data)) {
         logout();
 
@@ -83,7 +82,6 @@ const LoginPage = () => {
                 remember: true,
               }}
               onFinish={(values: LoginFormData) => {
-                console.log(values);
                 mutate({
                   email: values.username,
                   password: values.password,

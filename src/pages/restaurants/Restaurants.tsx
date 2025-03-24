@@ -69,7 +69,6 @@ const Restaurants = () => {
         queryParams as unknown as Record<string, string>
       ).toString();
       const response = await getTenants(queryString);
-      console.log(response);
       return response.data;
     },
   });
