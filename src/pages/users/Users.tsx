@@ -70,9 +70,6 @@ const Users = () => {
   } = theme.useToken();
   const [form] = Form.useForm();
   const [filterForm] = Form.useForm();
-  if (loggedInUser?.role !== "admin") {
-    <Navigate to="/" replace={true} />;
-  }
 
   const {
     data: users,
@@ -137,6 +134,10 @@ const Users = () => {
       }));
     }
   };
+
+  if (loggedInUser?.role !== "admin") {
+    return <Navigate to="/" replace={true} />;
+  }
 
   return (
     <>
