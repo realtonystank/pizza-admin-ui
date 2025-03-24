@@ -24,3 +24,8 @@ export type Tenant = {
 };
 
 export type CreateTenant = Omit<Tenant, "id">;
+
+export type FieldData = {
+  name: string;
+  value?: string;
+};

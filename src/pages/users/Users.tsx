@@ -17,14 +17,9 @@ import {
 } from "@ant-design/icons";
 import React, { useState } from "react";
 import { Link, Navigate } from "react-router-dom";
-import {
-  keepPreviousData,
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createUser, getUsers } from "../../http/api";
-import { CreateUser, User } from "../../types";
+import { CreateUser, FieldData, User } from "../../types";
 import { useAuthStore } from "../../../store";
 import UsersFilter from "./UsersFilter";
 import UserForm from "./forms/UserForm";
@@ -65,6 +60,7 @@ const Users = () => {
     token: { colorBgLayout },
   } = theme.useToken();
   const [form] = Form.useForm();
+  const [filterForm] = Form.useForm();
   if (loggedInUser?.role !== "admin") {
     <Navigate to="/" replace={true} />;
   }
@@ -77,14 +73,18 @@ const Users = () => {
   } = useQuery({
     queryKey: ["users", queryParams],
     queryFn: async () => {
+      const filteredParams = Object.fromEntries(
+        Object.entries(queryParams).filter((item) => !!item[1])
+      );
+
       const queryString = new URLSearchParams(
-        queryParams as unknown as Record<string, string>
+        filteredParams as unknown as Record<string, string>
       ).toString();
 
       const response = await getUsers(queryString);
       return response.data;
     },
-    placeholderData: keepPreviousData,
+    placeholderData: (previousData) => previousData,
   });
 
   const { mutate: userMutate } = useMutation({
@@ -103,11 +103,21 @@ const Users = () => {
     await form.validateFields();
     userMutate(form.getFieldsValue());
   };
+  const onFilterChange = async (changedFields: FieldData[]) => {
+    const changedFilterFields = changedFields
+      .map((item) => {
+        return {
+          [item.name[0]]: item.value,
+        };
+      })
+      .reduce((acc, item) => ({ ...acc, ...item }), {});
+    setQueryParams((prev) => ({ ...prev, ...changedFilterFields }));
+  };
 
   return (
     <>
       <Space style={{ width: "100%" }} direction="vertical" size={"middle"}>
-        <Flex justify="space-between">
+        <Flex justify="space-between" style={{ minHeight: 24 }}>
           <Breadcrumb
             separator={<RightOutlined />}
             items={[
@@ -126,20 +136,17 @@ const Users = () => {
             <Typography.Text type={"danger"}>{error.message}</Typography.Text>
           )}
         </Flex>
-        <UsersFilter
-          onFilterChange={(filterName: string, filterValue: string) => {
-            console.log(filterName);
-            console.log(filterValue);
-          }}
-        >
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={() => setDrawerOpen(true)}
-          >
-            Create User
-          </Button>
-        </UsersFilter>
+        <Form form={filterForm} onFieldsChange={onFilterChange}>
+          <UsersFilter>
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={() => setDrawerOpen(true)}
+            >
+              Create User
+            </Button>
+          </UsersFilter>
+        </Form>
         <Table
           columns={columns}
           dataSource={users?.data}
