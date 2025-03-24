@@ -16,7 +16,7 @@ import {
   PlusOutlined,
   RightOutlined,
 } from "@ant-design/icons";
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { Navigate, NavLink } from "react-router-dom";
 import RestaurantsFilter from "./RestaurantsFilter";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -24,6 +24,8 @@ import { createTenant, getTenants } from "../../http/api";
 import RestaurantForm from "./forms/RestaurantForm";
 import { PER_PAGE } from "../../constants";
 import { useAuthStore } from "../../../store";
+import { FieldData } from "../../types";
+import { debounce } from "lodash";
 
 const columns = [
   {
@@ -50,6 +52,8 @@ const Restaurants = () => {
     currentPage: 1,
   });
   const [form] = Form.useForm();
+  const [queryForm] = Form.useForm();
+
   const queryClient = useQueryClient();
   const { user: loggedInUser } = useAuthStore();
 
@@ -65,8 +69,13 @@ const Restaurants = () => {
   } = useQuery({
     queryKey: ["tenants", queryParams],
     queryFn: async () => {
+      const filteredQueryParams = Object.fromEntries(
+        Object.entries(queryParams).filter((query) => {
+          return !!query[1];
+        })
+      );
       const queryString = new URLSearchParams(
-        queryParams as unknown as Record<string, string>
+        filteredQueryParams as unknown as Record<string, string>
       ).toString();
       const response = await getTenants(queryString);
       return response.data;
@@ -82,6 +91,11 @@ const Restaurants = () => {
       setDrawerOpen(false);
     },
   });
+  const deboundedQUpdate = useMemo(() => {
+    return debounce((value: string | undefined) => {
+      setQueryParams((prev) => ({ ...prev, q: value, currentPage: 1 }));
+    }, 500);
+  }, []);
 
   if (loggedInUser?.role !== "admin") {
     return <Navigate to="/" replace={true} />;
@@ -90,6 +104,25 @@ const Restaurants = () => {
   const onFormSubmit = async () => {
     await form.validateFields();
     restaurantMutate(form.getFieldsValue());
+  };
+
+  const onFilterChange = async (changedFields: FieldData[]) => {
+    // console.log("changedFileds from restaurants page -> ", changedFields);
+    const changedFilterFields = changedFields
+      .map((field) => {
+        return { [field.name[0]]: field.value };
+      })
+      .reduce((acc, item) => ({ ...acc, ...item }), {});
+
+    if ("q" in changedFilterFields) {
+      deboundedQUpdate(changedFilterFields.q);
+    } else {
+      setQueryParams((prev) => ({
+        ...prev,
+        currentPage: 1,
+        ...changedFilterFields,
+      }));
+    }
   };
 
   return (
@@ -115,17 +148,19 @@ const Restaurants = () => {
           )}
         </Flex>
         <Card>
-          <RestaurantsFilter>
-            <Button
-              onClick={() => {
-                setDrawerOpen(true);
-              }}
-              icon={<PlusOutlined />}
-              type="primary"
-            >
-              Create Restaurant
-            </Button>
-          </RestaurantsFilter>
+          <Form form={queryForm} onFieldsChange={onFilterChange}>
+            <RestaurantsFilter>
+              <Button
+                onClick={() => {
+                  setDrawerOpen(true);
+                }}
+                icon={<PlusOutlined />}
+                type="primary"
+              >
+                Create Restaurant
+              </Button>
+            </RestaurantsFilter>
+          </Form>
         </Card>
         <Drawer
           title="Create Restaurant"

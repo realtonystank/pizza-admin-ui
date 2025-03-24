@@ -1,4 +1,4 @@
-import { Col, Input, Row } from "antd";
+import { Col, Form, Input, Row } from "antd";
 import React, { ReactNode } from "react";
 
 type RestaurantsFilterProps = {
@@ -9,7 +9,9 @@ const RestaurantsFilter = ({ children }: RestaurantsFilterProps) => {
   return (
     <Row justify={"space-between"}>
       <Col span={14}>
-        <Input.Search placeholder="Search" />
+        <Form.Item name={"q"}>
+          <Input.Search placeholder="Search" />
+        </Form.Item>
       </Col>
       <Col>{children}</Col>
     </Row>
