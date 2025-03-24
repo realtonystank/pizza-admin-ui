@@ -13,7 +13,7 @@ export type User = {
   lastName: string;
   createdAt: string;
   role: string;
-  tenantId: number | null;
+  tenant: Tenant;
 };
 export type CreateUser = Omit<User, "id" | "createdAt"> & { password: string };
 
