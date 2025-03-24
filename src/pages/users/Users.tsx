@@ -15,7 +15,7 @@ import {
   PlusOutlined,
   RightOutlined,
 } from "@ant-design/icons";
-import React, { useState } from "react";
+import { useMemo, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createUser, getUsers } from "../../http/api";
@@ -24,6 +24,7 @@ import { useAuthStore } from "../../../store";
 import UsersFilter from "./UsersFilter";
 import UserForm from "./forms/UserForm";
 import { PER_PAGE } from "../../constants";
+import { debounce } from "lodash";
 
 const columns = [
   {
@@ -103,6 +104,12 @@ const Users = () => {
     await form.validateFields();
     userMutate(form.getFieldsValue());
   };
+  const deboundedQUpdate = useMemo(() => {
+    return debounce((value: string | undefined) => {
+      setQueryParams((prev) => ({ ...prev, q: value }));
+    }, 500);
+  }, []);
+
   const onFilterChange = async (changedFields: FieldData[]) => {
     const changedFilterFields = changedFields
       .map((item) => {
@@ -111,7 +118,12 @@ const Users = () => {
         };
       })
       .reduce((acc, item) => ({ ...acc, ...item }), {});
-    setQueryParams((prev) => ({ ...prev, ...changedFilterFields }));
+
+    if ("q" in changedFilterFields) {
+      deboundedQUpdate(changedFilterFields.q);
+    } else {
+      setQueryParams((prev) => ({ ...prev, ...changedFilterFields }));
+    }
   };
 
   return (
