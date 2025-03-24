@@ -4,6 +4,7 @@ import {
   Drawer,
   Flex,
   Form,
+  Popconfirm,
   Space,
   Spin,
   Table,
@@ -18,7 +19,7 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createUser, getUsers, updateUser } from "../../http/api";
+import { createUser, deleteUser, getUsers, updateUser } from "../../http/api";
 import { CreateUser, FieldData, User } from "../../types";
 import { useAuthStore } from "../../../store";
 import UsersFilter from "./UsersFilter";
@@ -132,6 +133,16 @@ const Users = () => {
     },
   });
 
+  const { mutate: userDeleteMutate } = useMutation({
+    mutationKey: ["user-delete"],
+    mutationFn: async (userId: string) => {
+      await deleteUser(userId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+    },
+  });
+
   const onHandleSubmit = async () => {
     const isEditMode = !!currentEditingUser!;
     await form.validateFields();
@@ -165,6 +176,11 @@ const Users = () => {
         currentPage: 1,
       }));
     }
+  };
+
+  const onHandleDelete = (userId: string) => {
+    console.log(userId);
+    userDeleteMutate(userId);
   };
 
   if (loggedInUser?.role !== "admin") {
@@ -209,6 +225,7 @@ const Users = () => {
             ...columns,
             {
               title: "Actions",
+              align: "center",
               render: (_text: string, record: User) => {
                 return (
                   <Space>
@@ -220,6 +237,17 @@ const Users = () => {
                     >
                       Edit
                     </Button>
+                    <Popconfirm
+                      title="Delete the task"
+                      description="Are you sure to delete this record?"
+                      onConfirm={() => onHandleDelete(record.id)}
+                      okText="Yes"
+                      cancelText="No"
+                    >
+                      <Button type={"link"} danger={true}>
+                        Delete
+                      </Button>
+                    </Popconfirm>
                   </Space>
                 );
               },

@@ -21,3 +21,5 @@ export const createUser = (user: CreateUser) => api.post("/users", user);
 
 export const updateUser = (user: UpdateUser, id: string) =>
   api.patch(`/users/${id}`, user);
+
+export const deleteUser = (userId: string) => api.delete(`/users/${userId}`);
