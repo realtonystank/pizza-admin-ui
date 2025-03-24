@@ -15,10 +15,10 @@ import {
   PlusOutlined,
   RightOutlined,
 } from "@ant-design/icons";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createUser, getUsers } from "../../http/api";
+import { createUser, getUsers, updateUser } from "../../http/api";
 import { CreateUser, FieldData, User } from "../../types";
 import { useAuthStore } from "../../../store";
 import UsersFilter from "./UsersFilter";
@@ -63,6 +63,9 @@ const Users = () => {
     currentPage: 1,
   });
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [currentEditingUser, setCurrentEditingUser] = useState<User | null>(
+    null
+  );
   const { user: loggedInUser } = useAuthStore();
   const queryClient = useQueryClient();
   const {
@@ -70,6 +73,16 @@ const Users = () => {
   } = theme.useToken();
   const [form] = Form.useForm();
   const [filterForm] = Form.useForm();
+
+  useEffect(() => {
+    if (form && currentEditingUser) {
+      form.setFieldsValue({
+        ...currentEditingUser,
+        tenantId: currentEditingUser.tenant?.id,
+      });
+      setDrawerOpen(true);
+    }
+  }, [currentEditingUser, form]);
 
   const {
     data: users,
@@ -102,12 +115,31 @@ const Users = () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
       form.resetFields();
       setDrawerOpen(false);
+      setCurrentEditingUser(null);
+    },
+  });
+
+  const { mutate: userUpdateMutate } = useMutation({
+    mutationKey: ["user-patch"],
+    mutationFn: async (data: CreateUser) => {
+      await updateUser(data, currentEditingUser!.id);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      form.resetFields();
+      setDrawerOpen(false);
+      setCurrentEditingUser(null);
     },
   });
 
   const onHandleSubmit = async () => {
+    const isEditMode = !!currentEditingUser!;
     await form.validateFields();
-    userMutate(form.getFieldsValue());
+    if (isEditMode) {
+      userUpdateMutate(form.getFieldsValue());
+    } else {
+      userMutate(form.getFieldsValue());
+    }
   };
   const deboundedQUpdate = useMemo(() => {
     return debounce((value: string | undefined) => {
@@ -173,7 +205,26 @@ const Users = () => {
           </UsersFilter>
         </Form>
         <Table
-          columns={columns}
+          columns={[
+            ...columns,
+            {
+              title: "Actions",
+              render: (_text: string, record: User) => {
+                return (
+                  <Space>
+                    <Button
+                      type="link"
+                      onClick={() => {
+                        setCurrentEditingUser(record);
+                      }}
+                    >
+                      Edit
+                    </Button>
+                  </Space>
+                );
+              },
+            },
+          ]}
           dataSource={users?.data}
           rowKey={"id"}
           pagination={{
@@ -194,12 +245,13 @@ const Users = () => {
           }}
         />
         <Drawer
-          title="Create user"
+          title={currentEditingUser ? "Edit User" : "Create User"}
           width={720}
           destroyOnClose={true}
           onClose={() => {
             form.resetFields();
             setDrawerOpen(false);
+            setCurrentEditingUser(null);
           }}
           open={drawerOpen}
           styles={{ body: { background: colorBgLayout } }}
@@ -209,6 +261,7 @@ const Users = () => {
                 onClick={() => {
                   form.resetFields();
                   setDrawerOpen(false);
+                  setCurrentEditingUser(null);
                 }}
               >
                 Cancel
@@ -220,7 +273,7 @@ const Users = () => {
           }
         >
           <Form layout="vertical" form={form}>
-            <UserForm />
+            <UserForm isEditMode={!!currentEditingUser} />
           </Form>
         </Drawer>
       </Space>

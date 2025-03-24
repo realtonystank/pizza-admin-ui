@@ -17,6 +17,8 @@ export type User = {
 };
 export type CreateUser = Omit<User, "id" | "createdAt"> & { password: string };
 
+export type UpdateUser = Omit<User, "id" | "createdAt">;
+
 export type Tenant = {
   id: number;
   name: string;
