@@ -22,6 +22,7 @@ import RestaurantsFilter from "./RestaurantsFilter";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createTenant, getTenants } from "../../http/api";
 import RestaurantForm from "./forms/RestaurantForm";
+import { PER_PAGE } from "../../constants";
 
 const columns = [
   {
@@ -43,6 +44,10 @@ const columns = [
 
 const Restaurants = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [queryParams, setQueryParams] = useState({
+    perPage: PER_PAGE,
+    currentPage: 1,
+  });
   const [form] = Form.useForm();
   const queryClient = useQueryClient();
 
@@ -52,13 +57,16 @@ const Restaurants = () => {
 
   const {
     data: restaurants,
-    isLoading,
+    isFetching,
     isError,
     error,
   } = useQuery({
-    queryKey: ["tenants"],
+    queryKey: ["tenants", queryParams],
     queryFn: async () => {
-      const response = await getTenants();
+      const queryString = new URLSearchParams(
+        queryParams as unknown as Record<string, string>
+      ).toString();
+      const response = await getTenants(queryString);
       console.log(response);
       return response.data;
     },
@@ -82,7 +90,7 @@ const Restaurants = () => {
   return (
     <>
       <Space size={"middle"} direction="vertical" style={{ width: "100%" }}>
-        <Flex justify="space-between">
+        <Flex justify="space-between" style={{ minHeight: 24 }}>
           <Breadcrumb
             separator={<RightOutlined />}
             items={[
@@ -90,7 +98,7 @@ const Restaurants = () => {
               { title: "Restaurants" },
             ]}
           />
-          {isLoading && (
+          {isFetching && (
             <Spin
               indicator={
                 <LoadingOutlined style={{ fontSize: 24 }} spin={true} />
@@ -145,7 +153,21 @@ const Restaurants = () => {
           </Form>
         </Drawer>
 
-        <Table dataSource={restaurants} columns={columns} rowKey={"id"} />
+        <Table
+          dataSource={restaurants?.data}
+          columns={columns}
+          rowKey={"id"}
+          pagination={{
+            total: restaurants?.total,
+            pageSize: queryParams.perPage,
+            current: queryParams.currentPage,
+            onChange: (page) => {
+              setQueryParams((prev) => {
+                return { ...prev, currentPage: page };
+              });
+            },
+          }}
+        />
       </Space>
     </>
   );
