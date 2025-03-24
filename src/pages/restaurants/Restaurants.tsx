@@ -17,12 +17,13 @@ import {
   RightOutlined,
 } from "@ant-design/icons";
 import React, { useState } from "react";
-import { NavLink } from "react-router-dom";
+import { Navigate, NavLink } from "react-router-dom";
 import RestaurantsFilter from "./RestaurantsFilter";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createTenant, getTenants } from "../../http/api";
 import RestaurantForm from "./forms/RestaurantForm";
 import { PER_PAGE } from "../../constants";
+import { useAuthStore } from "../../../store";
 
 const columns = [
   {
@@ -50,6 +51,7 @@ const Restaurants = () => {
   });
   const [form] = Form.useForm();
   const queryClient = useQueryClient();
+  const { user: loggedInUser } = useAuthStore();
 
   const {
     token: { colorBgLayout },
@@ -81,6 +83,10 @@ const Restaurants = () => {
       setDrawerOpen(false);
     },
   });
+
+  if (loggedInUser?.role !== "admin") {
+    return <Navigate to="/" replace={true} />;
+  }
 
   const onFormSubmit = async () => {
     await form.validateFields();
