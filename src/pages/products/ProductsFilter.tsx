@@ -13,12 +13,14 @@ import {
 import { ReactNode } from "react";
 import { getCategories, getTenants } from "../../http/api";
 import { Category, Tenant } from "../../types";
+import { useAuthStore } from "../../../store";
 
 type ProductsFilterProps = {
   children: ReactNode;
 };
 
 const ProductsFilter = ({ children }: ProductsFilterProps) => {
+  const { user } = useAuthStore();
   const { data: restaurants } = useQuery({
     queryKey: ["restaurants"],
     queryFn: async () => {
@@ -70,23 +72,29 @@ const ProductsFilter = ({ children }: ProductsFilterProps) => {
                 </Select>
               </Form.Item>
             </Col>
-            <Col span={5}>
-              <Form.Item name={"tenantId"}>
-                <Select
-                  style={{ width: "100%" }}
-                  placeholder={"Select restaurant"}
-                  allowClear={true}
-                >
-                  {restaurants?.data?.map((restaurant: Tenant) => {
-                    return (
-                      <Select.Option value={restaurant.id} key={restaurant.id}>
-                        {restaurant.name}
-                      </Select.Option>
-                    );
-                  })}
-                </Select>
-              </Form.Item>
-            </Col>
+            {user!.role === "admin" && (
+              <Col span={5}>
+                <Form.Item name={"tenantId"}>
+                  <Select
+                    style={{ width: "100%" }}
+                    placeholder={"Select restaurant"}
+                    allowClear={true}
+                  >
+                    {restaurants?.data?.map((restaurant: Tenant) => {
+                      return (
+                        <Select.Option
+                          value={restaurant.id}
+                          key={restaurant.id}
+                        >
+                          {restaurant.name}
+                        </Select.Option>
+                      );
+                    })}
+                  </Select>
+                </Form.Item>
+              </Col>
+            )}
+
             <Col span={7}>
               <Space>
                 <Form.Item name={"isPublished"}>

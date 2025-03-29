@@ -25,6 +25,7 @@ import { PER_PAGE } from "../../constants";
 import { getProducts } from "../../http/api";
 import { FieldData, Product } from "../../types";
 import { debounce } from "lodash";
+import { useAuthStore } from "../../../store";
 
 const columns = [
   {
@@ -78,9 +79,11 @@ const columns = [
 ];
 
 const Products = () => {
+  const { user } = useAuthStore();
   const [queryParams, setQueryParams] = useState({
     perPage: PER_PAGE,
     currentPage: 1,
+    tenantId: user!.role === "manager" ? user!.tenant?.id : undefined,
   });
   const [form] = useForm();
   const {
