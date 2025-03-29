@@ -2,7 +2,7 @@ import { CreateTenant, CreateUser, Credentials, UpdateUser } from "../types";
 import { api } from "./client";
 
 export const authServiceApi = "/api/auth";
-// const catalogServiceApi = "/api/catalog";
+const catalogServiceApi = "/api/catalog";
 
 export const login = (credentials: Credentials) =>
   api.post(`${authServiceApi}/auth/login`, credentials);
@@ -28,3 +28,6 @@ export const updateUser = (user: UpdateUser, id: string) =>
 
 export const deleteUser = (userId: string) =>
   api.delete(`${authServiceApi}/users/${userId}`);
+
+export const getCategories = (queryString: string) =>
+  api.get(`${catalogServiceApi}/categories?${queryString}`);

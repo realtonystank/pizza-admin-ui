@@ -25,6 +25,13 @@ export type Tenant = {
   address: string;
 };
 
+export type Category = {
+  _id: string;
+  name: string;
+  priceConfiguration: object;
+  attributes: object[];
+};
+
 export type CreateTenant = Omit<Tenant, "id">;
 
 export type FieldData = {

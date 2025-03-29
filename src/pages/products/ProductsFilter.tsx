@@ -1,3 +1,4 @@
+import { useQuery } from "@tanstack/react-query";
 import {
   Card,
   Col,
@@ -10,12 +11,38 @@ import {
   Typography,
 } from "antd";
 import { ReactNode } from "react";
+import { getCategories, getTenants } from "../../http/api";
+import { Category, Tenant } from "../../types";
 
 type ProductsFilterProps = {
   children: ReactNode;
 };
 
 const ProductsFilter = ({ children }: ProductsFilterProps) => {
+  const { data: restaurants } = useQuery({
+    queryKey: ["restaurants"],
+    queryFn: async () => {
+      const queryString = new URLSearchParams({
+        perPage: 100000,
+        currentPage: 1,
+      } as unknown as Record<string, string>).toString();
+      const response = await getTenants(queryString);
+      return response.data;
+    },
+  });
+
+  const { data: categories } = useQuery({
+    queryKey: ["categories"],
+    queryFn: async () => {
+      const queryString = new URLSearchParams({
+        perPage: 10000,
+        currentPage: 1,
+      } as unknown as Record<string, string>).toString();
+      const response = await getCategories(queryString);
+      return response.data;
+    },
+  });
+
   return (
     <Card>
       <Row justify={"space-between"}>
@@ -33,8 +60,13 @@ const ProductsFilter = ({ children }: ProductsFilterProps) => {
                   placeholder={"Select category"}
                   allowClear={true}
                 >
-                  <Select.Option value="admin">Pizza</Select.Option>
-                  <Select.Option value="manager">Beverages</Select.Option>
+                  {categories?.data.map((category: Category) => {
+                    return (
+                      <Select.Option value={category._id} key={category._id}>
+                        {category.name}
+                      </Select.Option>
+                    );
+                  })}
                 </Select>
               </Form.Item>
             </Col>
@@ -45,8 +77,13 @@ const ProductsFilter = ({ children }: ProductsFilterProps) => {
                   placeholder={"Select restaurant"}
                   allowClear={true}
                 >
-                  <Select.Option value="admin">Pizza hub</Select.Option>
-                  <Select.Option value="manager">AFC</Select.Option>
+                  {restaurants?.data?.map((restaurant: Tenant) => {
+                    return (
+                      <Select.Option value={restaurant.id} key={restaurant.id}>
+                        {restaurant.name}
+                      </Select.Option>
+                    );
+                  })}
                 </Select>
               </Form.Item>
             </Col>
