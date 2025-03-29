@@ -1,13 +1,4 @@
-import {
-  Badge,
-  Card,
-  Col,
-  Row,
-  Space,
-  Statistic,
-  Table,
-  Typography,
-} from "antd";
+import { Card, Col, Row, Space, Statistic, Table, Tag, Typography } from "antd";
 import { useAuthStore } from "../../store";
 import { BarChartIcon } from "../components/icons/BarChart";
 import Icon from "@ant-design/icons";
@@ -45,18 +36,7 @@ const columns = [
     dataIndex: "status",
     key: "status",
     render: (status: string) => {
-      return (
-        <Badge
-          count={status}
-          color="#fef5e1"
-          style={{
-            color: "#e88f7f",
-            fontWeight: "bold",
-            border: "1px solid",
-            alignItems: "center",
-          }}
-        />
-      );
+      return <Tag color={"magenta"}>{status}</Tag>;
     },
   },
 ];
