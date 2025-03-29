@@ -63,7 +63,6 @@ const getMenuItems = (role: string) => {
 
 const Dashboard = () => {
   const location = useLocation();
-  console.log("location -> ", location);
   const { user } = useAuthStore();
   const [collapsed, setCollapsed] = useState(false);
   const {

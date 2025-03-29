@@ -31,3 +31,6 @@ export const deleteUser = (userId: string) =>
 
 export const getCategories = (queryString: string) =>
   api.get(`${catalogServiceApi}/categories?${queryString}`);
+
+export const getProducts = (queryString: string) =>
+  api.get(`${catalogServiceApi}/products?${queryString}`);
