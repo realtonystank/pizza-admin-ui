@@ -63,6 +63,7 @@ const getMenuItems = (role: string) => {
 
 const Dashboard = () => {
   const location = useLocation();
+  console.log("location -> ", location);
   const { user } = useAuthStore();
   const [collapsed, setCollapsed] = useState(false);
   const {
@@ -95,7 +96,8 @@ const Dashboard = () => {
         </div>
         <Menu
           theme="light"
-          defaultSelectedKeys={[location.pathname]}
+          defaultSelectedKeys={["/"]}
+          selectedKeys={[location.pathname]}
           mode="inline"
           items={items}
         />
