@@ -54,7 +54,7 @@ const ProductsFilter = ({ children }: ProductsFilterProps) => {
               </Form.Item>
             </Col>
             <Col span={4}>
-              <Form.Item name={"category"}>
+              <Form.Item name={"categoryId"}>
                 <Select
                   style={{ width: "100%" }}
                   placeholder={"Select category"}
@@ -71,7 +71,7 @@ const ProductsFilter = ({ children }: ProductsFilterProps) => {
               </Form.Item>
             </Col>
             <Col span={5}>
-              <Form.Item name={"tenant"}>
+              <Form.Item name={"tenantId"}>
                 <Select
                   style={{ width: "100%" }}
                   placeholder={"Select restaurant"}
@@ -88,12 +88,12 @@ const ProductsFilter = ({ children }: ProductsFilterProps) => {
               </Form.Item>
             </Col>
             <Col span={7}>
-              <Form.Item name={"isPublished"}>
-                <Space>
-                  <Switch defaultChecked={true} onChange={() => {}} />
-                  <Typography.Text>Show only published</Typography.Text>
-                </Space>
-              </Form.Item>
+              <Space>
+                <Form.Item name={"isPublished"}>
+                  <Switch defaultChecked={false} />
+                </Form.Item>
+                <Typography.Text>Show only published</Typography.Text>
+              </Space>
             </Col>
           </Row>
         </Col>

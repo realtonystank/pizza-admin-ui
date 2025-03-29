@@ -15,7 +15,7 @@ import {
   PlusOutlined,
   RightOutlined,
 } from "@ant-design/icons";
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { format } from "date-fns";
 import ProductsFilter from "./ProductsFilter";
@@ -23,7 +23,8 @@ import { useForm } from "antd/es/form/Form";
 import { useQuery } from "@tanstack/react-query";
 import { PER_PAGE } from "../../constants";
 import { getProducts } from "../../http/api";
-import { Product } from "../../types";
+import { FieldData, Product } from "../../types";
+import { debounce } from "lodash";
 
 const columns = [
   {
@@ -81,6 +82,7 @@ const Products = () => {
     perPage: PER_PAGE,
     currentPage: 1,
   });
+  const [form] = useForm();
   const {
     data: products,
     isFetching,
@@ -101,12 +103,36 @@ const Products = () => {
       return products.data;
     },
   });
+  const deboundedQUpdate = useMemo(() => {
+    return debounce((value: string | undefined) => {
+      setQueryParams((prev) => ({ ...prev, q: value, currentPage: 1 }));
+    }, 500);
+  }, []);
 
-  const [form] = useForm();
+  const onFilterChange = (changedFields: FieldData[]) => {
+    const changedFilterFields = changedFields
+      .map((item) => {
+        return {
+          [item.name[0]]: item.value,
+        };
+      })
+      .reduce((acc, item) => ({ ...acc, ...item }), {});
+
+    if ("q" in changedFilterFields) {
+      deboundedQUpdate(changedFilterFields.q);
+    } else {
+      setQueryParams((prev) => ({
+        ...prev,
+        ...changedFilterFields,
+        currentPage: 1,
+      }));
+    }
+  };
+
   return (
     <>
       <Space direction="vertical" size="large" style={{ width: "100%" }}>
-        <Flex justify="space-between">
+        <Flex justify="space-between" style={{ minHeight: 24 }}>
           <Breadcrumb
             separator={<RightOutlined />}
             items={[
@@ -126,7 +152,7 @@ const Products = () => {
           )}
         </Flex>
 
-        <Form form={form}>
+        <Form form={form} onFieldsChange={onFilterChange}>
           <ProductsFilter>
             <Button type="primary" icon={<PlusOutlined />}>
               Add Product
