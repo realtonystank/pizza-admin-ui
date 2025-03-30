@@ -32,11 +32,18 @@ export type PriceConfiguration = {
   };
 };
 
+export type Attribute = {
+  name: string;
+  widgetType: "switch" | "radio";
+  defaultValue: string;
+  availableOptions: string[];
+};
+
 export type Category = {
   _id: string;
   name: string;
   priceConfiguration: PriceConfiguration;
-  attributes: object[];
+  attributes: Attribute[];
 };
 
 export type CreateTenant = Omit<Tenant, "id">;

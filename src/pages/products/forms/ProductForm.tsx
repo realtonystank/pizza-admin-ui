@@ -153,7 +153,9 @@ const ProductForm = () => {
           {selectedCategory && (
             <Pricing selectedCategoryString={selectedCategory} />
           )}
-          {selectedCategory && <Attributes />}
+          {selectedCategory && (
+            <Attributes selectedCategoryString={selectedCategory} />
+          )}
           <Card title={"Other properties"}>
             <Row>
               <Col span={12}>
@@ -173,7 +175,7 @@ const ProductForm = () => {
                     style={{ marginBottom: 20, display: "block" }}
                   >
                     {" "}
-                    Show only published
+                    Publish
                   </Typography.Text>
                 </Space>
               </Col>
