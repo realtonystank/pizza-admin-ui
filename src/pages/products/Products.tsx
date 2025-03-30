@@ -1,6 +1,7 @@
 import {
   Breadcrumb,
   Button,
+  Drawer,
   Flex,
   Form,
   Image,
@@ -8,6 +9,7 @@ import {
   Spin,
   Table,
   Tag,
+  theme,
   Typography,
 } from "antd";
 import {
@@ -26,6 +28,7 @@ import { getProducts } from "../../http/api";
 import { FieldData, Product } from "../../types";
 import { debounce } from "lodash";
 import { useAuthStore } from "../../../store";
+import ProductForm from "./forms/ProductForm";
 
 const columns = [
   {
@@ -80,12 +83,17 @@ const columns = [
 
 const Products = () => {
   const { user } = useAuthStore();
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const [queryParams, setQueryParams] = useState({
     perPage: PER_PAGE,
     currentPage: 1,
     tenantId: user!.role === "manager" ? user!.tenant?.id : undefined,
   });
   const [form] = useForm();
+  const [createProductForm] = useForm();
+  const {
+    token: { colorBgLayout },
+  } = theme.useToken();
   const {
     data: products,
     isFetching,
@@ -132,6 +140,10 @@ const Products = () => {
     }
   };
 
+  const onHandleSubmit = async () => {
+    await createProductForm.validateFields();
+  };
+
   return (
     <>
       <Space direction="vertical" size="large" style={{ width: "100%" }}>
@@ -157,7 +169,13 @@ const Products = () => {
 
         <Form form={form} onFieldsChange={onFilterChange}>
           <ProductsFilter>
-            <Button type="primary" icon={<PlusOutlined />}>
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={() => {
+                setDrawerOpen(true);
+              }}
+            >
               Add Product
             </Button>
           </ProductsFilter>
@@ -178,6 +196,37 @@ const Products = () => {
             },
           }}
         />
+
+        <Drawer
+          title={"Add Product"}
+          width={720}
+          styles={{ body: { backgroundColor: colorBgLayout } }}
+          destroyOnClose={true}
+          open={drawerOpen}
+          onClose={() => {
+            createProductForm.resetFields();
+            setDrawerOpen(false);
+          }}
+          extra={
+            <Space>
+              <Button
+                onClick={() => {
+                  createProductForm.resetFields();
+                  setDrawerOpen(false);
+                }}
+              >
+                Cancel
+              </Button>
+              <Button type="primary" onClick={onHandleSubmit}>
+                Submit
+              </Button>
+            </Space>
+          }
+        >
+          <Form form={createProductForm} layout="vertical">
+            <ProductForm />
+          </Form>
+        </Drawer>
       </Space>
     </>
   );
