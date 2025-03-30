@@ -25,10 +25,17 @@ export type Tenant = {
   address: string;
 };
 
+export type PriceConfiguration = {
+  [key: string]: {
+    priceType: "base" | "additional";
+    availableOptions: string[];
+  };
+};
+
 export type Category = {
   _id: string;
   name: string;
-  priceConfiguration: object;
+  priceConfiguration: PriceConfiguration;
   attributes: object[];
 };
 

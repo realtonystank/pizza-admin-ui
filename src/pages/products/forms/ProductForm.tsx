@@ -6,16 +6,19 @@ import {
   Row,
   Select,
   Space,
+  Switch,
   Typography,
   Upload,
 } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
-import React from "react";
-import { Category } from "../../../types";
+import { Category, Tenant } from "../../../types";
 import { useQuery } from "@tanstack/react-query";
-import { getCategories } from "../../../http/api";
+import { getCategories, getTenants } from "../../../http/api";
+import Pricing from "./Pricing";
+import Attributes from "./Attributes";
 
 const ProductForm = () => {
+  const selectedCategory = Form.useWatch("category");
   const { data: categories } = useQuery({
     queryKey: ["category"],
     queryFn: async () => {
@@ -28,6 +31,21 @@ const ProductForm = () => {
       ).toString();
       const response = await getCategories(queryString);
       return response.data;
+    },
+  });
+
+  const { data: restaurants } = useQuery({
+    queryKey: ["tenants"],
+    queryFn: async () => {
+      const queryParams = {
+        perPage: 10000,
+        currentPage: 1,
+      };
+      const queryString = new URLSearchParams(
+        queryParams as unknown as Record<string, string>
+      ).toString();
+      const restaurants = await getTenants(queryString);
+      return restaurants.data;
     },
   });
 
@@ -51,7 +69,7 @@ const ProductForm = () => {
               <Col span={12}>
                 <Form.Item
                   label={"Category"}
-                  name={"categoryId"}
+                  name={"category"}
                   rules={[
                     { required: true, message: "Product category is required" },
                   ]}
@@ -64,7 +82,10 @@ const ProductForm = () => {
                   >
                     {categories?.data?.map((category: Category) => {
                       return (
-                        <Select.Option value={category._id} key={category._id}>
+                        <Select.Option
+                          value={JSON.stringify(category)}
+                          key={category._id}
+                        >
                           {category.name}
                         </Select.Option>
                       );
@@ -106,6 +127,57 @@ const ProductForm = () => {
                 </div>
               </Upload>
             </Form.Item>
+          </Card>
+          <Card title={"Tenant info"}>
+            <Form.Item
+              label={"Restaurant"}
+              name={"tenantId"}
+              rules={[{ required: true, message: "Tenant is required" }]}
+            >
+              <Select
+                size={"large"}
+                style={{ width: "100%" }}
+                allowClear={true}
+                placeholder={"Select tenant"}
+              >
+                {restaurants?.data?.map((restaurant: Tenant) => {
+                  return (
+                    <Select.Option value={restaurant.id} key={restaurant.id}>
+                      {restaurant.name}
+                    </Select.Option>
+                  );
+                })}
+              </Select>
+            </Form.Item>
+          </Card>
+          {selectedCategory && (
+            <Pricing selectedCategoryString={selectedCategory} />
+          )}
+          {selectedCategory && <Attributes />}
+          <Card title={"Other properties"}>
+            <Row>
+              <Col span={12}>
+                <Space size={"small"}>
+                  <Form.Item
+                    label={""}
+                    name={"isPublished"}
+                    rules={[{ required: true, message: "Tenant is required" }]}
+                  >
+                    <Switch
+                      defaultChecked={false}
+                      checkedChildren="Yes"
+                      unCheckedChildren="No"
+                    />
+                  </Form.Item>
+                  <Typography.Text
+                    style={{ marginBottom: 20, display: "block" }}
+                  >
+                    {" "}
+                    Show only published
+                  </Typography.Text>
+                </Space>
+              </Col>
+            </Row>
           </Card>
         </Space>
       </Col>
