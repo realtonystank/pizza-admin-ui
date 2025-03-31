@@ -34,3 +34,8 @@ export const getCategories = (queryString: string) =>
 
 export const getProducts = (queryString: string) =>
   api.get(`${catalogServiceApi}/products?${queryString}`);
+
+export const createProduct = (product: FormData) =>
+  api.post(`${catalogServiceApi}/products`, product, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });

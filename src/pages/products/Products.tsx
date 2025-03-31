@@ -22,13 +22,14 @@ import { Link } from "react-router-dom";
 import { format } from "date-fns";
 import ProductsFilter from "./ProductsFilter";
 import { useForm } from "antd/es/form/Form";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { PER_PAGE } from "../../constants";
-import { getProducts } from "../../http/api";
-import { FieldData, Product } from "../../types";
+import { createProduct, getProducts } from "../../http/api";
+import { Category, FieldData, Product } from "../../types";
 import { debounce } from "lodash";
 import { useAuthStore } from "../../../store";
 import ProductForm from "./forms/ProductForm";
+import { makeFormData } from "./forms/helpers";
 
 const columns = [
   {
@@ -89,6 +90,7 @@ const Products = () => {
     currentPage: 1,
     tenantId: user!.role === "manager" ? user!.tenant?.id : undefined,
   });
+  const queryClient = useQueryClient();
   const [form] = useForm();
   const [createProductForm] = useForm();
   const {
@@ -140,8 +142,61 @@ const Products = () => {
     }
   };
 
+  const { mutate: productMutation } = useMutation({
+    mutationKey: ["product"],
+    mutationFn: async (data: FormData) => {
+      await createProduct(data);
+    },
+    onSuccess: async () => {
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+      createProductForm.resetFields();
+      setDrawerOpen(false);
+    },
+  });
+
   const onHandleSubmit = async () => {
     await createProductForm.validateFields();
+    const category = createProductForm.getFieldValue("category");
+
+    const priceConfiguration =
+      createProductForm.getFieldValue("priceConfiguration");
+    const pricing = Object.entries(priceConfiguration).reduce(
+      (acc, [key, value]) => {
+        const parsedKey = JSON.parse(key);
+        return {
+          ...acc,
+          [parsedKey.configurationKey]: {
+            priceType: parsedKey.priceType,
+            availableOptions: value,
+          },
+        };
+      },
+      {}
+    );
+
+    const categoryId = (JSON.parse(category) as Category)._id;
+
+    const attributes = createProductForm.getFieldValue("attributes");
+
+    const attr = Object.entries(attributes).map(([key, value]) => {
+      return {
+        name: key,
+        value,
+      };
+    });
+
+    const productData = {
+      ...createProductForm.getFieldsValue(),
+      image: createProductForm.getFieldValue("image"),
+      categoryId,
+      priceConfiguration: pricing,
+      attributes: attr,
+    };
+    delete productData.category;
+
+    const formData = makeFormData(productData);
+    console.log("Formdata -> ", formData);
+    productMutation(formData);
   };
 
   return (

@@ -26,7 +26,7 @@ const Attributes = ({ selectedCategoryString }: AttributeProps) => {
                   { required: true, message: `${attribute.name} is required.` },
                 ]}
               >
-                <Radio.Group defaultValue={attribute.defaultValue}>
+                <Radio.Group>
                   {attribute.availableOptions.map((option: string) => {
                     return (
                       <Radio.Button value={option} key={option}>

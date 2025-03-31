@@ -24,7 +24,7 @@ import { createTenant, getTenants } from "../../http/api";
 import RestaurantForm from "./forms/RestaurantForm";
 import { PER_PAGE } from "../../constants";
 import { useAuthStore } from "../../../store";
-import { FieldData } from "../../types";
+import { FieldData, Tenant } from "../../types";
 import { debounce } from "lodash";
 
 const columns = [
@@ -84,7 +84,9 @@ const Restaurants = () => {
 
   const { mutate: restaurantMutate } = useMutation({
     mutationKey: ["tenant"],
-    mutationFn: createTenant,
+    mutationFn: async (data: Tenant) => {
+      await createTenant(data);
+    },
     onSuccess: async () => {
       queryClient.invalidateQueries({ queryKey: ["tenants"] });
       form.resetFields();

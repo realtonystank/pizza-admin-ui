@@ -3,12 +3,14 @@ import {
   Col,
   Form,
   Input,
+  message,
   Row,
   Select,
   Space,
   Switch,
   Typography,
   Upload,
+  UploadProps,
 } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import { Category, Tenant } from "../../../types";
@@ -16,8 +18,11 @@ import { useQuery } from "@tanstack/react-query";
 import { getCategories, getTenants } from "../../../http/api";
 import Pricing from "./Pricing";
 import Attributes from "./Attributes";
+import { useState } from "react";
 
 const ProductForm = () => {
+  const [messageApi, contextHolder] = message.useMessage();
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
   const selectedCategory = Form.useWatch("category");
   const { data: categories } = useQuery({
     queryKey: ["category"],
@@ -48,6 +53,25 @@ const ProductForm = () => {
       return restaurants.data;
     },
   });
+
+  const uploaderConfig: UploadProps = {
+    name: "file",
+    multiple: false,
+    showUploadList: false,
+    beforeUpload: (file) => {
+      console.log("inside before upload");
+      const isJpgOrPng =
+        file.type === "image/jpeg" || file.type === "image/png";
+      if (!isJpgOrPng) {
+        console.error("You can only upload JPEG/PNG file");
+        messageApi.error("You can only upload JPEG/PNG image");
+      }
+
+      setImageUrl(URL.createObjectURL(file));
+
+      return false;
+    },
+  };
 
   return (
     <Row>
@@ -114,17 +138,23 @@ const ProductForm = () => {
             </Row>
           </Card>
           <Card title={"Product image"}>
+            {contextHolder}
             <Form.Item
               name={"image"}
               rules={[{ required: true, message: "Product image is required" }]}
+              valuePropName={"file"}
             >
-              <Upload listType="picture-card">
-                <div>
-                  <Space direction={"vertical"}>
-                    <PlusOutlined />
-                    <Typography.Text>Upload</Typography.Text>
-                  </Space>
-                </div>
+              <Upload listType="picture-card" {...uploaderConfig}>
+                {imageUrl ? (
+                  <img src={imageUrl} alt="avatar" style={{ width: "100%" }} />
+                ) : (
+                  <div>
+                    <Space direction={"vertical"}>
+                      <PlusOutlined />
+                      <Typography.Text>Upload</Typography.Text>
+                    </Space>
+                  </div>
+                )}
               </Upload>
             </Form.Item>
           </Card>
@@ -164,6 +194,7 @@ const ProductForm = () => {
                     label={""}
                     name={"isPublished"}
                     rules={[{ required: true, message: "Tenant is required" }]}
+                    initialValue={false}
                   >
                     <Switch
                       defaultChecked={false}
